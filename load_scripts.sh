@@ -2,13 +2,13 @@
 
 set -e
 
-script=`cat get_with_lease.lua`
+script=`cat get.lua`
 get_sha=`redis-cli script load "$script"`
-script=`cat get_lock_with_lease.lua`
+script=`cat get_with_lock.lua`
 get_lock_sha=`redis-cli script load "$script"`
-script=`cat set_with_lease.lua`
+script=`cat set.lua`
 set_sha=`redis-cli script load "$script"`
-script=`cat del_with_lease.lua`
+script=`cat del.lua`
 del_sha=`redis-cli script load "$script"`
 
 echo "Scripts load sucessful. Usage:"
