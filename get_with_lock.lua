@@ -13,7 +13,7 @@ if not value then
         redis.call('incr', token_gen_key)
         local token = redis.call('get', token_gen_key)
         redis.call('set', lease_key, token)
-        redis.call('set', time_key, "ok", "EX", block_time)
+        redis.call('set', time_key, "ok", "PX", block_time)
         return {false, token}
     end
 else
