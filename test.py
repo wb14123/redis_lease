@@ -146,5 +146,10 @@ class ClusterTest(RedisLeaseTest):
                 {"host": "127.0.0.1", "port": "30003"},
             ],decode_responses=True)
 
+
+class ClusterGetWithLockTest(ClusterTest, GetWithLockTest):
+    pass
+
+
 if __name__ == '__main__':
     unittest.main()
