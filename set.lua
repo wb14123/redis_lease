@@ -1,7 +1,7 @@
 
-local key = KEYS[1]
-local lease = KEYS[2]
-local value = KEYS[3]
+local key = '{'..KEYS[1]..'}'
+local lease = ARGV[1]
+local value = ARGV[2]
 
 local lease_key = "lease:"..key
 local server_lease = redis.call('get', lease_key)

@@ -1,5 +1,5 @@
 
-local key = KEYS[1]
+local key = '{'..KEYS[1]..'}'
 local lease_key = "lease:"..key
 local time_key = "timeblock"..key
 redis.call('del', lease_key)

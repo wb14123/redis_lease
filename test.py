@@ -3,6 +3,8 @@ import hashlib
 import redis
 import os
 import time
+import uuid
+from rediscluster import RedisCluster
 
 
 def sha1file(filename):
@@ -22,8 +24,7 @@ class RedisLeaseTest(unittest.TestCase):
         cls.get_with_lock_sha1 = sha1file('get_with_lock.lua')
         cls.set_sha1 = sha1file('set.lua')
         cls.del_sha1 = sha1file('del.lua')
-        cls.redis = redis.Redis(host='localhost', port=6379,
-                encoding="utf-8", decode_responses=True)
+        cls.redis = cls._get_redis()
 
     def setUp(self):
         self.redis.flushall()
@@ -84,15 +85,22 @@ class RedisLeaseTest(unittest.TestCase):
         with self.assertRaises(redis.exceptions.ResponseError):
             self._set('k', lease, 'v1')
 
+    @classmethod
+    def _get_redis(cls):
+        return redis.Redis(host='localhost', port=6379,
+                encoding="utf-8", decode_responses=True)
 
     def _get(self, key):
-        return self.redis.evalsha(self.get_sha1, 1, key)
+        return self.redis.evalsha(self.get_sha1, 1, key, self._get_token())
 
     def _set(self, key, lease, value):
-        return self.redis.evalsha(self.set_sha1, 3, key, lease, value)
+        return self.redis.evalsha(self.set_sha1, 1, key, lease, value)
 
     def _del(self, key):
         return self.redis.evalsha(self.del_sha1, 1, key)
+
+    def _get_token(self):
+        return str(uuid.uuid4())
 
 
 class GetWithLockTest(RedisLeaseTest):
@@ -114,9 +122,18 @@ class GetWithLockTest(RedisLeaseTest):
         return self._get_with_lock(key, 1)
 
     def _get_with_lock(self, key, timeout):
-        return self.redis.evalsha(self.get_with_lock_sha1, 2, key, timeout)
+        return self.redis.evalsha(self.get_with_lock_sha1, 1, key,
+                self._get_token(), timeout)
 
 
+class ClusterTest(RedisLeaseTest):
+    @classmethod
+    def _get_redis(cls):
+        return RedisCluster(startup_nodes=[
+                {"host": "127.0.0.1", "port": "30001"},
+                {"host": "127.0.0.1", "port": "30002"},
+                {"host": "127.0.0.1", "port": "30003"},
+            ],decode_responses=True)
 
 if __name__ == '__main__':
     unittest.main()
