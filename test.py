@@ -30,60 +30,67 @@ class RedisLeaseTest(unittest.TestCase):
         self.redis.flushall()
 
     def test_no_key(self):
-        [value, lease] = self._get('k')
+        key = self._get_random_key()
+        [value, lease] = self._get(key)
         self.assertIsNone(value)
         self.assertIsNotNone(lease)
 
     def test_set_get(self):
-        [value, lease] = self._get('k')
-        self._set('k', lease, 'v')
-        [value, lease] = self._get('k')
+        key = self._get_random_key()
+        [value, lease] = self._get(key)
+        self._set(key, lease, 'v')
+        [value, lease] = self._get(key)
         self.assertEqual('v', value)
         self.assertIsNone(lease)
 
     def test_set_without_lease(self):
+        key = self._get_random_key()
         with self.assertRaises(redis.exceptions.ResponseError):
-            self._set('k', '0', 'v')
-        [value, lease] = self._get('k')
+            self._set(key, '0', 'v')
+        [value, lease] = self._get(key)
         self.assertIsNone(value)
         self.assertIsNotNone(lease)
 
     def test_double_get_set(self):
-        [v1, lease1] = self._get('k')
-        [v2, lease2] = self._get('k')
+        key = self._get_random_key()
+        [v1, lease1] = self._get(key)
+        [v2, lease2] = self._get(key)
         self.assertNotEqual(lease1, lease2)
         self.assertIsNotNone(lease1)
         self.assertIsNotNone(lease2)
 
         with self.assertRaises(redis.exceptions.ResponseError):
-            self._set('k', lease1, 'v1')
-        self._set('k', lease2, 'v2')
-        [value, lease] = self._get('k')
+            self._set(key, lease1, 'v1')
+        self._set(key, lease2, 'v2')
+        [value, lease] = self._get(key)
         self.assertEqual('v2', value)
         self.assertIsNone(lease)
 
     def test_del_none(self):
-        self._del('k')
-        [value, lease] = self._get('k')
+        key = self._get_random_key()
+        self._del(key)
+        [value, lease] = self._get(key)
         self.assertIsNone(value)
         self.assertIsNotNone(lease)
 
     def test_del_key(self):
-        [value, lease] = self._get('k')
-        self._set('k', lease, 'v')
-        [value, lease] = self._get('k')
+        key = self._get_random_key()
+        [value, lease] = self._get(key)
+        self._set(key, lease, 'v')
+        [value, lease] = self._get(key)
         self.assertEqual('v', value)
         self.assertIsNone(lease)
-        self._del('k')
-        [value, lease] = self._get('k')
+        self._del(key)
+        [value, lease] = self._get(key)
         self.assertIsNone(value)
         self.assertIsNotNone(lease)
 
     def test_del_lease(self):
-        [value, lease] = self._get('k')
-        self._del('k')
+        key = self._get_random_key()
+        [value, lease] = self._get(key)
+        self._del(key)
         with self.assertRaises(redis.exceptions.ResponseError):
-            self._set('k', lease, 'v1')
+            self._set(key, lease, 'v1')
 
     @classmethod
     def _get_redis(cls):
@@ -102,18 +109,22 @@ class RedisLeaseTest(unittest.TestCase):
     def _get_token(self):
         return str(uuid.uuid4())
 
+    def _get_random_key(self):
+        return self._get_token()
+
 
 class GetWithLockTest(RedisLeaseTest):
 
     def test_double_get_with_lock(self):
-        [v1, lease1] = self._get_with_lock('k', 1000)
-        [v2, lease2] = self._get_with_lock('k', 1000)
+        key = self._get_random_key()
+        [v1, lease1] = self._get_with_lock(key, 1000)
+        [v2, lease2] = self._get_with_lock(key, 1000)
         self.assertIsNone(v1)
         self.assertIsNotNone(lease1)
         self.assertIsNone(v2)
         self.assertIsNone(lease2)
-        self._set('k', lease1, 'v1')
-        [value, lease] = self._get('k')
+        self._set(key, lease1, 'v1')
+        [value, lease] = self._get(key)
         self.assertEqual('v1', value)
         self.assertIsNone(lease)
 
