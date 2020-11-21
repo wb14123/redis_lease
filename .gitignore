@@ -1,2 +1,15 @@
 venv/
 redis-release/
+jepsen-test/jepsen.redis.lease/target
+jepsen-test/jepsen.redis.lease/classes
+jepsen-test/jepsen.redis.lease/checkouts
+jepsen-test/jepsen.redis.lease/.lein-*
+jepsen-test/jepsen.redis.lease/.nrepl-port
+jepsen-test/jepsen.redis.lease/.prepl-port
+jepsen-test/jepsen.redis.lease/store
+.hg/
+profiles.clj
+pom.xml
+pom.xml.asc
+*.jar
+*.class
