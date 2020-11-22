@@ -2,7 +2,8 @@
   (:require
     [clojure.tools.logging :refer :all]
     [jepsen.db :as db]
-    [jepsen.control.util :as cu]))
+    [jepsen.control.util :as cu]
+    [jepsen.control :as c]))
 
 (def dir "/redis")
 (def binary "redis-server")
@@ -10,14 +11,21 @@
 (def pidfile "/redis.pid")
 (def port "6379")
 
+(defn install-redis
+  [node]
+  (info node "Installing Redis ...")
+  (cu/install-archive! "https://download.redis.io/releases/redis-6.0.9.tar.gz" dir)
+  (c/cd dir (c/exec :make)))
+
 (defn start-redis
   [node]
   (info node "Starting Redis ...")
   (cu/start-daemon!
     {:logfile logfile
      :pidfile pidfile
-     :chdir dir}
+     :chdir (str dir "/src")}
     binary
+    :--bind "0.0.0.0"
     :--port port
     :--appendfilename (str node ".aof")
     :--dbfilename (str node ".rdb")
@@ -34,6 +42,7 @@
   []
   (reify db/DB
     (setup! [_ test node]
+      (install-redis node)
       (start-redis node))
     (teardown! [_ test node]
       (stop-redis node))))
