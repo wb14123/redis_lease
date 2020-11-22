@@ -1,12 +1,20 @@
 (ns jepsen.redis.lease
-  (:require [jepsen.cli :as cli]
-            [jepsen.tests :as tests]))
+  (:require
+            [clojure.tools.logging :refer :all]
+            [jepsen.cli :as cli]
+            [jepsen.tests :as tests]
+            [jepsen.os.debian :as debian]
+            [jepsen.redis.db :as redis-db]))
+
 
 (defn redis-lease-test
   "Noop test"
   [opts]
   (merge tests/noop-test
-         {:pure-generators true}
+         {:name "redis-lease"
+          :os   debian/os
+          :db (redis-db/db)
+          :pure-generators true}
          opts))
 
 
