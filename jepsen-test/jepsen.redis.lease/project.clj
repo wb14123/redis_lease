@@ -6,4 +6,6 @@
                  [jepsen "0.2.1-SNAPSHOT"]
                  [biz.paluch.redis/lettuce "3.2.Final"]
                  ]
+  :source-paths      ["src/clojure"]
+  :java-source-paths ["src/java"]
   :repl-options {:init-ns jepsen.redis.lease})
