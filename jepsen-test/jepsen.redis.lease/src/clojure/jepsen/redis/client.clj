@@ -16,6 +16,7 @@
     (case (:f op)
       :read (assoc op :type :ok, :value (.get conn "foo"))
       :write (assoc op :type :ok, :value (.set conn "foo" (:value op)))
+      :check (assoc op :type :ok, :value (.check conn "foo"))
       )
     )
 

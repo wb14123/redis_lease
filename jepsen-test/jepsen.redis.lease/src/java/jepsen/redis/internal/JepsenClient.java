@@ -23,6 +23,23 @@ public class JepsenClient {
         return getOptional(key).orElse(null);
     }
 
+    public String getDB(String key) {
+        return db.get(key).orElse(null);
+    }
+
+    public String getCache(String key) {
+        return cache.get(key).orElse(null);
+    }
+
+    public void check(String key) {
+        String dbKey = getDB(key);
+        String cacheKey = getCache(key);
+        if (cacheKey != null && !dbKey.equals(cacheKey)) {
+            throw new RuntimeException("Check failed: key not match: " + cacheKey + "," + dbKey);
+        }
+        System.out.println("Check succeed");
+    }
+
     public Optional<String> getOptional(String key) {
         Optional<String> maybeValue = cache.get(key);
         if (maybeValue.isPresent()) {

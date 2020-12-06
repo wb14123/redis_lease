@@ -8,8 +8,9 @@
     [jepsen.redis.client :as test-client]
     [jepsen.generator :as gen]))
 
-(defn r   [_ _] {:type :invoke, :f :read, :value nil})
-(defn w   [_ _] {:type :invoke, :f :write, :value (str (rand-int 5))})
+(defn r    [_ _] {:type :invoke, :f :read, :value nil})
+(defn w    [_ _] {:type :invoke, :f :write, :value (str (rand-int 1000000))})
+(def check {:type :invoke, :f :check, :value nil})
 
 (defn redis-lease-test
   "Noop test"
@@ -20,10 +21,11 @@
           :db        (redis-db/db)
           :client    (test-client/->Client nil)
           :pure-generators true
-          :generator (->> (gen/mix [r w])
-                          (gen/stagger 1)
-                          (gen/nemesis nil)
-                          (gen/time-limit 10))
+          :generator (repeat 3000 (gen/phases (->> (gen/mix [r w])
+                                      (gen/stagger (/ 10000))
+                                      (gen/nemesis nil)
+                                      (gen/time-limit 0.2))
+                                 (gen/once check)))
           }
          opts))
 
