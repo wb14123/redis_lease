@@ -8,9 +8,16 @@ public class JepsenClient {
     private final JepsenRedisClient db;
 
     public static JepsenClient singleRawCacheClient(
-            String cacheHostName, String cachePortName, String dbHostName, String dbPortName) {
-        JepsenRedisClient cache = new JepsenRedisRawClient(cacheHostName, cachePortName);
-        JepsenRedisClient db = new JepsenRedisRawClient(dbHostName, dbPortName);
+            String cacheHostName, String cachePort, String dbHostName, String dbPort) {
+        JepsenRedisClient cache = new JepsenRedisRawClient(cacheHostName, cachePort);
+        JepsenRedisClient db = new JepsenRedisRawClient(dbHostName, dbPort);
+        return new JepsenClient(cache, db);
+    }
+
+    public static JepsenClient singleLeaseCacheClient(String cacheHostName, String cachePort, String dbHostName,
+            String dbPort, String scriptDirectory) {
+        JepsenRedisClient cache = new JepsenRedisLeaseClient(cacheHostName, cachePort, scriptDirectory);
+        JepsenRedisClient db = new JepsenRedisRawClient(dbHostName, dbPort);
         return new JepsenClient(cache, db);
     }
 
