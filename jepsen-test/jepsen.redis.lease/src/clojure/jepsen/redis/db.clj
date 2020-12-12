@@ -15,11 +15,13 @@
   [node]
   (info node "Installing Redis ...")
   (cu/install-archive! "https://download.redis.io/releases/redis-6.0.9.tar.gz" dir)
-  (c/cd dir (c/exec :make)))
+  (c/cd dir (c/exec :make))
+  (c/exec :rm :-rf "/redis-db"))
 
 (defn start-redis
   [node]
   (info node "Starting Redis ...")
+  (c/exec :mkdir :-p "/redis-db")
   (cu/start-daemon!
     {:logfile logfile
      :pidfile pidfile
@@ -27,8 +29,11 @@
     binary
     :--bind "0.0.0.0"
     :--port port
-    :--appendfilename (str node ".aof")
-    :--dbfilename (str node ".rdb")
+    :--dir "/redis-db"
+    :--appendonly "yes"
+    :--appendfsync "always"
+    :--appendfilename "db.aof"
+    :--dbfilename "db.rdb"
     )
   (info node "Started Redis."))
 

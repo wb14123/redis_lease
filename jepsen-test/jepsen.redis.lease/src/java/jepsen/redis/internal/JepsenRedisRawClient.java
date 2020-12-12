@@ -1,19 +1,16 @@
 package jepsen.redis.internal;
 
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisConnection;
-import com.lambdaworks.redis.RedisURI;
+
+import redis.clients.jedis.Jedis;
 
 import java.util.Optional;
 
 public class JepsenRedisRawClient implements JepsenRedisClient {
 
-    private final RedisConnection<String, String> redisConnection;
+    private final Jedis redisConnection;
 
-    public JepsenRedisRawClient(String hostname, String port) {
-        RedisURI redisURI = RedisURI.create("redis://" + hostname + ":" + port);
-        RedisClient redisClient = new RedisClient(redisURI);
-        redisConnection = redisClient.connect();
+    public JepsenRedisRawClient(String hostname, int port) {
+        redisConnection = new Jedis(hostname, port);
     }
 
     @Override

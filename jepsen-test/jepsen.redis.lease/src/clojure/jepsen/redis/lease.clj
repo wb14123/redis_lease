@@ -4,6 +4,8 @@
     [jepsen.cli :as cli]
     [jepsen.tests :as tests]
     [jepsen.checker :as checker]
+    [jepsen.nemesis :as nemesis]
+    [jepsen.control :as c]
     [jepsen.os.debian :as debian]
     [jepsen.redis.db :as redis-db]
     [jepsen.redis.client :as test-client]
@@ -31,6 +33,15 @@
           )
         ))))
 
+(def crash-cache-nemesis
+  (nemesis/node-start-stopper
+    (fn target [nodes] "redis-cache")
+    ; rand-nth
+    (fn start [test node] (c/su (c/exec :killall -9 :redis-server)) [:killed node])
+    (fn stop  [test node] (redis-db/start-redis node) [:restarted node])
+    )
+  )
+
 (defn redis-lease-test
   "Noop test"
   [opts]
@@ -40,12 +51,16 @@
           :db        (redis-db/db)
           :client    (test-client/->Client nil)
           :pure-generators true
+          :nemesis   crash-cache-nemesis
           :checker   (check-consistent)
-          :generator (repeat 100 (gen/phases (->> (gen/mix [r w])
-                                      (gen/stagger (/ 10000))
-                                      (gen/nemesis nil)
-                                      (gen/time-limit 0.2))
-                                 (gen/once check)))
+          :generator (repeat 500 (gen/phases (->> (gen/mix [r w])
+                                                  (gen/stagger (/ 10000))
+                                                  (gen/nemesis [(gen/sleep 0.3)
+                                                                {:type :info, :f :start}
+                                                                ])
+                                                  (gen/time-limit 0.5))
+                                             (gen/nemesis [{:type :info, :f :stop} (gen/sleep 1)])
+                                             (gen/once check)))
           }
          opts))
 

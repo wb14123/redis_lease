@@ -4,7 +4,7 @@
   :main jepsen.redis.lease
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [jepsen "0.2.1-SNAPSHOT"]
-                 [biz.paluch.redis/lettuce "3.2.Final"]
+                 [redis.clients/jedis "3.3.0"]
                  ]
   :source-paths      ["src/clojure"]
   :java-source-paths ["src/java"]
