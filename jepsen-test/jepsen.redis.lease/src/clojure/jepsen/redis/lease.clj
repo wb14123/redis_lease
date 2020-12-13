@@ -6,6 +6,7 @@
     [jepsen.checker :as checker]
     [jepsen.nemesis :as nemesis]
     [jepsen.control :as c]
+    [jepsen.util :as util]
     [jepsen.os.debian :as debian]
     [jepsen.redis.db :as redis-db]
     [jepsen.redis.client :as test-client]
@@ -36,10 +37,21 @@
 (def crash-cache-nemesis
   (nemesis/node-start-stopper
     (fn target [nodes] "redis-cache")
-    ; rand-nth
     (fn start [test node] (c/su (c/exec :killall -9 :redis-server)) [:killed node])
     (fn stop  [test node] (redis-db/start-redis node) [:restarted node])
     )
+  )
+
+(def cli-opts
+  [
+   [nil "--lease" "Use Redis scripts with lease to do get/set/del"]
+   [nil "--fail" "Import nemesis: fail the cache server"]
+   [nil "--times NUM" "How many times to repeat the generator"
+    :default 100
+    :parse-fn util/parse-long
+    :validate [pos? "Must be a positive integer."]
+    ]
+   ]
   )
 
 (defn redis-lease-test
@@ -51,9 +63,9 @@
           :db        (redis-db/db)
           :client    (test-client/->Client nil)
           :pure-generators true
-          :nemesis   crash-cache-nemesis
+          :nemesis   (if (:fail opts) crash-cache-nemesis nemesis/noop)
           :checker   (check-consistent)
-          :generator (repeat 500 (gen/phases (->> (gen/mix [r w])
+          :generator (repeat (:times opts) (gen/phases (->> (gen/mix [r w])
                                                   (gen/stagger (/ 10000))
                                                   (gen/nemesis [(gen/sleep 0.3)
                                                                 {:type :info, :f :start}
@@ -68,6 +80,7 @@
 (defn -main
   "I don't do a whole lot."
   [& args]
-  (cli/run! (merge (cli/single-test-cmd {:test-fn redis-lease-test})
+  (cli/run! (merge (cli/single-test-cmd {:test-fn redis-lease-test
+                                         :opt-spec cli-opts})
                    (cli/serve-cmd))
             args))

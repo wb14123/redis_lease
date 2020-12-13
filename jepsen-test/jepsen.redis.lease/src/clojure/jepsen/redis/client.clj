@@ -8,7 +8,10 @@
   client/Client
 
   (open! [this test node]
-    (assoc this :conn (JepsenClient/singleLeaseCacheClient "redis-cache" 6379 "redis-db" 6379 "/jepsen/scripts")))
+    (assoc this :conn (if (:lease test)
+                        (JepsenClient/singleLeaseCacheClient "redis-cache" 6379 "redis-db" 6379 "/jepsen/scripts")
+                        (JepsenClient/singleRawCacheClient "redis-cache" 6379 "redis-db" 6379)
+                        )))
 
   (setup! [this test])
 
