@@ -49,8 +49,10 @@
    [nil "--times NUM" "How many times to repeat the generator"
     :default 100
     :parse-fn util/parse-long
-    :validate [pos? "Must be a positive integer."]
-    ]
+    :validate [pos? "Must be a positive integer."]]
+   [nil "--scripts DIR" "The directory that has all the Redis scripts"
+    :default "/jepsen/redis"
+    :parse-fn read-string]
    ]
   )
 

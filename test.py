@@ -20,10 +20,10 @@ class RedisLeaseTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.get_sha1 = sha1file('get.lua')
-        cls.get_with_lock_sha1 = sha1file('get_with_lock.lua')
-        cls.set_sha1 = sha1file('set.lua')
-        cls.del_sha1 = sha1file('del.lua')
+        cls.get_sha1 = sha1file('scripts/get.lua')
+        cls.get_with_lock_sha1 = sha1file('scripts/get_with_lock.lua')
+        cls.set_sha1 = sha1file('scripts/set.lua')
+        cls.del_sha1 = sha1file('scripts/del.lua')
         cls.redis = cls._get_redis()
 
     def setUp(self):
